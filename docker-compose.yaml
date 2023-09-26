@@ -1,6 +1,18 @@
 version: "3"
 
 services:
+  db:
+    image: postgres:16.0
+    volumes:
+      - greenapple_db:/var/lib/postgresql/data
+    env_file:
+      - src/core/config/.env
+    ports:
+      - "5433:5432"
+    networks:
+      - greenapple-network
+    container_name: greenapple-db
+
   back:
     build: .
     command: sh ./start_app.sh
@@ -8,4 +20,15 @@ services:
       - ./:/code/
     ports:
       - "8000:8000"
+    networks:
+      - greenapple-network
+    depends_on:
+      - db
+    container_name: greenapple-back
     restart: always
+
+networks:
+  greenapple-network:
+
+volumes:
+  greenapple_db:
