@@ -25,6 +25,21 @@ class DBConfig:
 
 
 @dataclass
+class Admin:
+    username: str
+    password: str
+
+
+@dataclass
+class Auth:
+    secret_key: str
+    algorithm: str
+    access_token_operating_time: int
+    refresh_token_operating_time: int
+
+
+@dataclass
 class Config:
     db: DBConfig
-
+    admin: Admin
+    auth: Auth

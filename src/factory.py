@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from src.view import router
+from src.admin.views import router as admin_router
 
 
 class AppFactory:
@@ -14,3 +15,4 @@ class AppFactory:
     @staticmethod
     def _append_routes(app: FastAPI):
         app.include_router(router)
+        app.include_router(admin_router)
