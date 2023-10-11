@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
 
-from jose import jwt
+from jose import jwt, JWTError
 from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordBearer
+from fastapi import HTTPException, status
 
 from src.core.config import load_config
 
@@ -56,3 +58,22 @@ class Authorization:
             self.auth_conf.secret_key,
             algorithm=self.auth_conf.algorithm
         )
+
+    def get_data_from_jwt(self, token: str):
+        """
+        Getting data from jwt tokens.
+        :param token: jwt token.
+        :return:
+        """
+        try:
+            return jwt.decode(
+                token,
+                self.auth_conf.secret_key,
+                algorithms=[self.auth_conf.algorithm],
+            )
+        except JWTError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Could not validate credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )

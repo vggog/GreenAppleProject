@@ -2,9 +2,11 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from starlette import status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 
-from src.core.schemas import ResponseTokens
+from src.core.schemas import (
+    ResponseTokens, ResponseAccessToken, RequestRefreshToken
+)
 from src.admin.service import Service
 from src.core.authorization import Authorization
 
@@ -12,8 +14,6 @@ from src.core.authorization import Authorization
 router = APIRouter(
     prefix="/admin",
 )
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
 @router.post(
@@ -51,5 +51,25 @@ def authorize_admin(
     return ResponseTokens(
         access_token=access_token,
         refresh_token=refresh_token,
+        token_type="bearer"
+    )
+
+
+@router.post(
+    "/auth/refresh",
+    response_model=ResponseAccessToken,
+)
+def authorize_admin(
+        token: RequestRefreshToken,
+        authorization=Depends(Authorization),
+):
+    data = authorization.get_data_from_jwt(token.refresh_token)
+
+    access_token = authorization.create_access_token(
+        data={"sub": data["sub"]}
+    )
+
+    return ResponseAccessToken(
+        access_token=access_token,
         token_type="bearer"
     )
