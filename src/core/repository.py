@@ -23,3 +23,7 @@ class BaseRepository:
         """
         with Session(self.engine) as session:
             return session.query(self._model).all()
+
+    def get_object(self, **kwargs) -> _model:
+        with Session(self.engine) as session:
+            return session.query(self._model).filter_by(**kwargs).first()

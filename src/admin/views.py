@@ -10,7 +10,7 @@ from src.core.schemas import (
 )
 from src.admin.service import Service
 from src.core.authorization import Authorization
-from src.admin.schemas import MasterInfoSchema, MasterInfoWithPassword, MasterInfoWithIdSchema
+from src.admin.schemas import MasterInfoWithPassword, MasterInfoWithIdSchema
 
 
 router = APIRouter(
@@ -131,3 +131,36 @@ def get_all_masters(
         )
 
     return service.get_all_masters()
+
+
+@router.get(
+    "/master/{master_id}",
+    response_model=MasterInfoWithIdSchema,
+)
+def get_master_info(
+        master_id: int,
+        token: Annotated[str, Depends(oauth2_scheme)],
+        service=Depends(Service),
+        authorization=Depends(Authorization),
+):
+    """
+    Выдаёт информацию о конкретном мастере.
+    """
+    username = authorization.get_data_from_jwt(token)["sub"]
+
+    if not service.is_admin(username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You do not have permission.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    master = service.get_master(master_id)
+    if not master:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Master not found.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return master

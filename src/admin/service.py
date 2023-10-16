@@ -87,3 +87,16 @@ class Service(BaseService):
             )
 
         return masters
+
+    def get_master(self, master_id: int) -> MasterInfoWithIdSchema | None:
+        master = self.repository.get_object(id=master_id)
+
+        if not master:
+            return None
+
+        return MasterInfoWithIdSchema(
+            id=master.id,
+            name=master.name,
+            surname=master.surname,
+            phone=master.phone,
+        )
