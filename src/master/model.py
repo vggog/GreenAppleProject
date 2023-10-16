@@ -8,3 +8,6 @@ class MasterModel(BaseModel):
 
     name: Mapped[str]
     surname: Mapped[str]
+    phone: Mapped[str]
+    password: Mapped[str]
+    salt: Mapped[str]

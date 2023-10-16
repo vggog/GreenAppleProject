@@ -8,3 +8,10 @@ from src.core.config import load_config
 class BaseRepository:
     engine = create_engine(load_config().db.alchemy_url)
     _model: BaseModel = NotImplemented
+
+    def create(self, **kwargs):
+        created_object = self._model(**kwargs)
+
+        with Session(self.engine) as session:
+            session.add(created_object)
+            session.commit()

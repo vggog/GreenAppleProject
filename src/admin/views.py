@@ -3,17 +3,20 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from starlette import status
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
 
 from src.core.schemas import (
     ResponseTokens, ResponseAccessToken, RequestRefreshToken
 )
 from src.admin.service import Service
 from src.core.authorization import Authorization
+from src.admin.schemas import MasterInfoSchema
 
 
 router = APIRouter(
     prefix="/admin",
 )
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="admin/auth")
 
 
 @router.post(
@@ -73,3 +76,34 @@ def authorize_admin(
         access_token=access_token,
         token_type="bearer"
     )
+
+
+@router.post(
+    "/master",
+    response_model=MasterInfoSchema,
+)
+def add_new_master(
+        master: MasterInfoSchema,
+        token: Annotated[str, Depends(oauth2_scheme)],
+        service=Depends(Service),
+        authorization=Depends(Authorization),
+):
+    username = authorization.get_data_from_jwt(token)["sub"]
+
+    if not service.is_admin(username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You do not have permission.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    success, detail = service.add_master(master)
+
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=detail,
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return master

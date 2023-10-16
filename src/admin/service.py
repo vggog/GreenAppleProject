@@ -1,8 +1,17 @@
+import re
+
 from src.core.config import load_config
+from src.admin.repository import Repository
+from src.core.service import BaseService
+from src.admin.schemas import MasterInfoSchema
+from src.core.password import Password
 
 
-class Service:
+class Service(BaseService):
+    repository = Repository()
+    hash_password = Password()
     admin_conf = load_config().admin
+    project_setup = load_config().project_setup
 
     def is_valid_admin_conf(self, username: str, password: str) -> bool:
         """
@@ -16,3 +25,44 @@ class Service:
             and
             (password == self.admin_conf.password)
         )
+
+    def is_admin(self, username: str) -> bool:
+        """
+
+        :param username:
+        :return:
+        """
+        return username == self.admin_conf.username
+
+    @staticmethod
+    def validate_phone(phone: str) -> bool:
+        return bool(
+            re.match(
+                r"^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$",
+                phone
+            )
+        )
+
+    def validate_password(self, password: str) -> bool:
+        return len(password) > self.project_setup.password_length
+
+    def add_master(self, master: MasterInfoSchema) -> tuple[bool, str]:
+        if not Service.validate_phone(master.phone):
+            return False, "The entered phone number is incorrect."
+
+        if not self.validate_password(master.password):
+            return False, "Small password length."
+
+        pass_hash = self.hash_password.generate_password_hash(
+            password=master.password
+            )
+
+        self.repository.create(
+            name=master.name,
+            surname=master.surname,
+            phone=master.phone,
+            password=pass_hash.hash,
+            salt=pass_hash.salt
+        )
+
+        return True, ""

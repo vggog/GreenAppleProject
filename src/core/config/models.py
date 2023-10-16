@@ -39,7 +39,21 @@ class Auth:
 
 
 @dataclass
+class PasswordHashConfig:
+    algorithm: str
+    salt_length: int
+    iterations: int
+
+
+@dataclass
+class ProjectSetUp:
+    password_length: int
+
+
+@dataclass
 class Config:
     db: DBConfig
     admin: Admin
     auth: Auth
+    password_hash: PasswordHashConfig
+    project_setup: ProjectSetUp
