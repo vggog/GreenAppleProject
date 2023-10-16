@@ -10,7 +10,7 @@ from src.core.schemas import (
 )
 from src.admin.service import Service
 from src.core.authorization import Authorization
-from src.admin.schemas import MasterInfoSchema
+from src.admin.schemas import MasterInfoSchema, MasterInfoWithPassword, MasterInfoWithIdSchema
 
 
 router = APIRouter(
@@ -80,10 +80,10 @@ def authorize_admin(
 
 @router.post(
     "/master",
-    response_model=MasterInfoSchema,
+    response_model=MasterInfoWithPassword,
 )
 def add_new_master(
-        master: MasterInfoSchema,
+        master: MasterInfoWithPassword,
         token: Annotated[str, Depends(oauth2_scheme)],
         service=Depends(Service),
         authorization=Depends(Authorization),
@@ -107,3 +107,27 @@ def add_new_master(
         )
 
     return master
+
+
+@router.get(
+    "/master/all",
+    response_model=list[MasterInfoWithIdSchema],
+)
+def get_all_masters(
+        token: Annotated[str, Depends(oauth2_scheme)],
+        service=Depends(Service),
+        authorization=Depends(Authorization),
+):
+    """
+    Выдаёт всех мастеров, которые есть в базе данных.
+    """
+    username = authorization.get_data_from_jwt(token)["sub"]
+
+    if not service.is_admin(username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You do not have permission.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return service.get_all_masters()

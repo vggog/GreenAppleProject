@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from src.core.model import BaseModel
@@ -15,3 +15,11 @@ class BaseRepository:
         with Session(self.engine) as session:
             session.add(created_object)
             session.commit()
+
+    def get_all_datas_from_table(self) -> list[_model]:
+        """
+        Return all objects.
+        :return:
+        """
+        with Session(self.engine) as session:
+            return session.query(self._model).all()

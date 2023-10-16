@@ -3,7 +3,9 @@ import re
 from src.core.config import load_config
 from src.admin.repository import Repository
 from src.core.service import BaseService
-from src.admin.schemas import MasterInfoSchema
+from src.admin.schemas import (
+    MasterInfoWithPassword, MasterInfoSchema, MasterInfoWithIdSchema
+)
 from src.core.password import Password
 
 
@@ -46,7 +48,7 @@ class Service(BaseService):
     def validate_password(self, password: str) -> bool:
         return len(password) > self.project_setup.password_length
 
-    def add_master(self, master: MasterInfoSchema) -> tuple[bool, str]:
+    def add_master(self, master: MasterInfoWithPassword) -> tuple[bool, str]:
         if not Service.validate_phone(master.phone):
             return False, "The entered phone number is incorrect."
 
@@ -66,3 +68,22 @@ class Service(BaseService):
         )
 
         return True, ""
+
+    def get_all_masters(self) -> list[MasterInfoWithIdSchema]:
+        """
+        Return all masters in the database.
+        :return:
+        """
+        master_objects = self.repository.get_all_datas_from_table()
+        masters = []
+        for master in master_objects:
+            masters.append(
+                MasterInfoWithIdSchema(
+                    id=master.id,
+                    name=master.name,
+                    surname=master.surname,
+                    phone=master.phone,
+                )
+            )
+
+        return masters
