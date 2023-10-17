@@ -201,3 +201,37 @@ def update_master_info(
         )
 
     return response
+
+
+@router.delete(
+    "/master/{master_id}",
+    response_model=MasterInfoSchema,
+)
+def delete_master_info(
+        master_id: int,
+        token: Annotated[str, Depends(oauth2_scheme)],
+        service=Depends(Service),
+        authorization=Depends(Authorization),
+):
+    """
+    Удаление мастера.
+    """
+    username = authorization.get_data_from_jwt(token)["sub"]
+
+    if not service.is_admin(username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You do not have permission.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    status_code, response = service.delete_master(master_id)
+
+    if status_code != status.HTTP_200_OK:
+        raise HTTPException(
+            status_code=status_code,
+            detail=response,
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return response

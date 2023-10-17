@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, update
+from sqlalchemy import create_engine, update, delete
 from sqlalchemy.orm import Session
 
 from src.core.model import BaseModel
@@ -43,5 +43,17 @@ class BaseRepository:
                 **values
             )
 
+            session.execute(stmt)
+            session.commit()
+
+    def delete_object(self, object_id: int):
+        """
+        Удаление объекта у сущности наследующаяся от модели
+            from src.core.model import BaseModel
+        :param object_id: id-объекта, который надо удалить.
+        :return:
+        """
+        with Session(self.engine) as session:
+            stmt = delete(self._model).where(self._model.id == object_id)
             session.execute(stmt)
             session.commit()

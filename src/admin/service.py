@@ -146,3 +146,26 @@ class Service(BaseService):
             surname=master.surname,
             phone=master.phone,
         )
+
+    def delete_master(
+            self,
+            master_id: int,
+    ) -> tuple[status, str | MasterInfoSchema]:
+        """
+        Удаление мастера.
+        :param master_id: Id мастера, который нужно удалить.
+        :return: статус код, и,
+            если удаление произошло успешно, объект MasterInfoSchema,
+            иначе объяснение(тип данных str), почему удаление не прошло успешно
+        """
+        master = self.repository.get_object(id=master_id)
+        if not master:
+            return status.HTTP_404_NOT_FOUND, "Master not found."
+
+        self.repository.delete_object(master_id)
+
+        return status.HTTP_200_OK, MasterInfoSchema(
+            name=master.name,
+            surname=master.surname,
+            phone=master.phone,
+        )
