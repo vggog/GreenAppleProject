@@ -10,7 +10,10 @@ from src.core.schemas import (
 )
 from src.admin.service import Service
 from src.core.authorization import Authorization
-from src.admin.schemas import MasterInfoWithPassword, MasterInfoWithIdSchema
+from src.admin.schemas import (
+    MasterInfoWithPassword, MasterInfoWithIdSchema, MasterUpdateSchema,
+    MasterInfoSchema
+)
 
 
 router = APIRouter(
@@ -164,3 +167,37 @@ def get_master_info(
         )
 
     return master
+
+
+@router.put(
+    "/master/{master_id}",
+    response_model=MasterInfoSchema,
+)
+def update_master_info(
+        master_id: int,
+        master_info: MasterUpdateSchema,
+        token: Annotated[str, Depends(oauth2_scheme)],
+        service=Depends(Service),
+        authorization=Depends(Authorization),
+):
+    """
+    Обновление данных у мастера.
+    """
+    username = authorization.get_data_from_jwt(token)["sub"]
+
+    if not service.is_admin(username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You do not have permission.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    status_code, response = service.update_master(master_id, master_info)
+    if status_code != status.HTTP_200_OK:
+        raise HTTPException(
+            status_code=status_code,
+            detail=response,
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return response

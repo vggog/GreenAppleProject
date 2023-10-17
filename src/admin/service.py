@@ -1,12 +1,16 @@
 import re
 
+from starlette import status
+
 from src.core.config import load_config
 from src.admin.repository import Repository
 from src.core.service import BaseService
 from src.admin.schemas import (
-    MasterInfoWithPassword, MasterInfoSchema, MasterInfoWithIdSchema
+    MasterInfoWithPassword, MasterInfoSchema, MasterInfoWithIdSchema,
+    MasterUpdateSchema
 )
 from src.core.password import Password
+from src.core.utils import delete_none_value_from_dict
 
 
 class Service(BaseService):
@@ -96,6 +100,48 @@ class Service(BaseService):
 
         return MasterInfoWithIdSchema(
             id=master.id,
+            name=master.name,
+            surname=master.surname,
+            phone=master.phone,
+        )
+
+    def update_master(
+            self,
+            master_id: int,
+            master_info: MasterUpdateSchema
+    ) -> tuple[status, str | MasterInfoSchema]:
+
+        master = self.repository.get_object(id=master_id)
+        if not master:
+            return status.HTTP_404_NOT_FOUND, "Master not found"
+
+        master_info_dict = master_info.model_dump()
+
+        if master_info.phone is not None:
+            if not Service.validate_phone(master_info.phone):
+                return (
+                    status.HTTP_403_FORBIDDEN,
+                    "The entered phone number is incorrect."
+                )
+
+        if master_info.password is not None:
+            if not self.validate_password(master_info.password):
+                return (
+                    status.HTTP_403_FORBIDDEN,
+                    "Small password length."
+                )
+            pass_hash = self.hash_password.generate_password_hash(
+                password=master.password
+            )
+
+            master_info_dict["password"] = pass_hash.hash
+            master_info_dict["salt"] = pass_hash.salt
+
+        master_info_dict = delete_none_value_from_dict(master_info_dict)
+        self.repository.update_object(master_id, **master_info_dict)
+        master = self.repository.get_object(id=master_id)
+
+        return status.HTTP_200_OK, MasterInfoSchema(
             name=master.name,
             surname=master.surname,
             phone=master.phone,
