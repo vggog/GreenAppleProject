@@ -7,7 +7,7 @@ def delete_none_value_from_dict(original_dict: dict) -> dict:
     """
     res_dict = {}
     for key, value in original_dict.items():
-        if res_dict[key] is None:
+        if original_dict[key] is None:
             continue
         res_dict[key] = value
 
