@@ -1,12 +1,12 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response, Cookie
 from starlette import status
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.security import OAuth2PasswordBearer
 
 from src.core.schemas import (
-    ResponseTokens, ResponseAccessToken, RequestRefreshToken
+    ResponseAccessToken
 )
 from src.admin.service import Service
 from src.core.authorization import Authorization
@@ -24,9 +24,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="admin/auth")
 
 @router.post(
     "/auth",
-    response_model=ResponseTokens,
+    response_model=ResponseAccessToken,
 )
 def authorize_admin(
+        response: Response,
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         service=Depends(Service),
         authorization=Depends(Authorization),
@@ -54,25 +55,45 @@ def authorize_admin(
         data={"sub": form_data.username}
     )
 
-    return ResponseTokens(
+    response.set_cookie(
+        "refresh_token",
+        value=refresh_token,
+        httponly=True
+    )
+
+    return ResponseAccessToken(
         access_token=access_token,
-        refresh_token=refresh_token,
         token_type="bearer"
     )
 
 
-@router.post(
+@router.get(
     "/auth/refresh",
     response_model=ResponseAccessToken,
 )
 def authorize_admin(
-        token: RequestRefreshToken,
+        response: Response,
+        refresh_token: Optional[str] = Cookie(None),
         authorization=Depends(Authorization),
 ):
-    data = authorization.get_data_from_jwt(token.refresh_token)
+    if refresh_token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED
+        )
+
+    data = authorization.get_data_from_jwt(refresh_token)
 
     access_token = authorization.create_access_token(
         data={"sub": data["sub"]}
+    )
+    refresh_token = authorization.create_refresh_token(
+        data={"sub": data["sub"]}
+    )
+
+    response.set_cookie(
+        "refresh_token",
+        value=refresh_token,
+        httponly=True
     )
 
     return ResponseAccessToken(
