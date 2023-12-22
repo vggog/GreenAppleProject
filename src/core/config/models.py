@@ -48,6 +48,7 @@ class PasswordHashConfig:
 @dataclass
 class ProjectSetUp:
     password_length: int
+    origins: list[str]
 
 
 @dataclass
