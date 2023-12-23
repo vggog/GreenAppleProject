@@ -1,15 +1,14 @@
+from typing import Optional, Annotated
+
 from fastapi import APIRouter, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi import Depends, FastAPI
-from pydantic import BaseModel
-from src.core.schemas import (
-    ResponseTokens, ResponseAccessToken, RequestRefreshToken
-)
-from src.master.model import MasterModel
-from typing import Annotated
+from fastapi import Depends, Response, Cookie
+from starlette import status
+
+from src.core.schemas import ResponseAccessToken
 from src.master.service import Servise
 from src.core.authorization import Authorization
-from starlette import status
+
 
 router = APIRouter(
     prefix='/master',
@@ -18,10 +17,11 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='master/auth')
 
 
 @router.post(
-    '/login',
-    response_model=ResponseTokens,
+    '/auth',
+    response_model=ResponseAccessToken,
 )
 def authorize_master(
+        response: Response,
         form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
         servise=Depends(Servise),
         authorization=Depends(Authorization),
@@ -30,11 +30,11 @@ def authorize_master(
        Authorization of the master and issuance of an access token and refresh
        token.
        """
-    response_code, response = servise.get_master(form_data.username, form_data.password)
+    response_code, detail = servise.get_master(form_data.username, form_data.password)
     if response_code != status.HTTP_200_OK:
         raise HTTPException(
             status_code=response_code,
-            detail=response,
+            detail=detail,
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token = authorization.create_access_token(
@@ -44,8 +44,64 @@ def authorize_master(
         data={"sub": form_data.username}
     )
 
-    return ResponseTokens(
+    response.set_cookie(
+        "refresh_token",
+        value=refresh_token,
+        httponly=True
+    )
+
+    return ResponseAccessToken(
         access_token=access_token,
-        refresh_token=refresh_token,
         token_type="bearer"
     )
+
+
+@router.get(
+    "/refresh",
+    response_model=ResponseAccessToken,
+)
+def master_refreshing(
+        response: Response,
+        refresh_token: Optional[str] = Cookie(None),
+        authorization=Depends(Authorization),
+        service=Depends(Servise)
+):
+    if refresh_token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    data = authorization.get_data_from_jwt(refresh_token)
+
+    if not service.get_master_by_phone(data["sub"]):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+    access_token = authorization.create_access_token(
+        data={"sub": data["sub"]}
+    )
+    refresh_token = authorization.create_refresh_token(
+        data={"sub": data["sub"]}
+    )
+
+    response.set_cookie(
+        "refresh_token",
+        value=refresh_token,
+        httponly=True
+    )
+
+    return ResponseAccessToken(
+        access_token=access_token,
+        token_type="bearer"
+    )
+
+
+@router.get(
+    "/logout",
+)
+def admin_logout(
+        response: Response,
+):
+    response.delete_cookie("refresh_token")
+    return {"status": "success"}
