@@ -11,6 +11,14 @@ class Servise(BaseService):
     auth = Authorization()
     password = Password()
 
+    def get_master_by_phone(self, phone: str) -> MasterModel | None:
+        """
+        Получить модель мастера по номеру телефона.
+        :param phone: номер телефона мастера
+        :return: мастер(MasterModel)
+        """
+        return self.repository.get_object(phone=phone)
+
     def get_master(self, phone: str, password: str) -> tuple[status, str | MasterModel]:
         master: MasterModel = self.repository.get_object(phone=phone)
         if not master:
