@@ -102,6 +102,16 @@ def authorize_admin(
     )
 
 
+@router.get(
+    "/logout",
+)
+def admin_logout(
+        response: Response,
+):
+    response.delete_cookie("refresh_token")
+    return {"status": "success"}
+
+
 @router.post(
     "/master",
     response_model=MasterInfoWithPassword,
