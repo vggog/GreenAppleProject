@@ -75,13 +75,19 @@ def authorize_admin(
         response: Response,
         refresh_token: Optional[str] = Cookie(None),
         authorization=Depends(Authorization),
+        service=Depends(Service)
 ):
     if refresh_token is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED
+            status_code=status.HTTP_401_UNAUTHORIZED,
         )
 
     data = authorization.get_data_from_jwt(refresh_token)
+
+    if not service.is_admin(data["sub"]):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
 
     access_token = authorization.create_access_token(
         data={"sub": data["sub"]}
