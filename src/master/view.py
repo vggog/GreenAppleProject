@@ -8,6 +8,7 @@ from starlette import status
 from src.core.schemas import ResponseAccessToken
 from src.master.service import Servise
 from src.core.authorization import Authorization
+from src.master.schemas import RepairOrderSchema, CreateRepairOrderSchema
 
 
 router = APIRouter(
@@ -105,3 +106,28 @@ def admin_logout(
 ):
     response.delete_cookie("refresh_token")
     return {"status": "success"}
+
+
+@router.post(
+    "/repair_orders",
+    response_model=RepairOrderSchema,
+)
+def create_repair_order(
+        repair_order: CreateRepairOrderSchema,
+        token: Annotated[str, Depends(oauth2_scheme)],
+        service: Servise = Depends(Servise),
+        authorization=Depends(Authorization),
+):
+    data_from_jwt = authorization.get_data_from_jwt(token)
+
+    if not service.get_master_by_phone(data_from_jwt["sub"]):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+    created_order = service.create_repair_order(
+        repair_order,
+        phone_number=data_from_jwt["sub"]
+    )
+
+    return created_order
