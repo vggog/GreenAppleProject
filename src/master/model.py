@@ -1,6 +1,7 @@
 from typing import Optional
 
-from sqlalchemy.orm import Mapped
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, relationship, mapped_column
 
 from src.core.model import BaseModel
 
@@ -13,6 +14,9 @@ class MasterModel(BaseModel):
     phone: Mapped[str]
     password: Mapped[str]
     salt: Mapped[str]
+    repair_orders: Mapped[list["RepairOrderModel"]] = relationship(
+        back_populates="master"
+    )
 
 
 class RepairOrderModel(BaseModel):
@@ -23,4 +27,8 @@ class RepairOrderModel(BaseModel):
     phone_model: Mapped[str]
     imei: Mapped[str]
     defect: Mapped[str]
+    master_id: Mapped[int] = mapped_column(ForeignKey("masters.id"))
+    master: Mapped["MasterModel"] = relationship(
+        back_populates="repair_orders"
+    )
     note: Mapped[Optional[str]]
