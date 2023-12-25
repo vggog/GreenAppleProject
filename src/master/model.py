@@ -4,6 +4,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 
 from src.core.model import BaseModel
+from src.core.config import load_config
 
 
 class MasterModel(BaseModel):
@@ -27,6 +28,11 @@ class RepairOrderModel(BaseModel):
     phone_model: Mapped[str]
     imei: Mapped[str]
     defect: Mapped[str]
+    status: Mapped[str] = mapped_column(
+        # Статусы заказа находятся в классе ProjectSetUp,
+        # модуля src.core.config.models
+        default="Принят на ремонт"
+    )
     master_id: Mapped[int] = mapped_column(ForeignKey("masters.id"))
     master: Mapped["MasterModel"] = relationship(
         back_populates="repair_orders"

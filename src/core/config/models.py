@@ -48,6 +48,9 @@ class PasswordHashConfig:
 @dataclass
 class ProjectSetUp:
     password_length: int
+    order_statuses = [
+        "Принят на ремонт", "Ремонтируется", "Готов", "Выдан клиенту"
+    ]
 
 
 @dataclass
