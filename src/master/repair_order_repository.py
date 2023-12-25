@@ -9,7 +9,7 @@ class RepairOrderRepository(BaseRepository):
 
     def get_repair_order_by_id(
             self,
-            order_id: str
+            order_id: int
     ) -> RepairOrderModel:
         return self.get_object(id=order_id)
 

@@ -48,3 +48,19 @@ class Servise(BaseService):
 
     def get_all_repair_orders(self) -> list[RepairOrderModel]:
         return self.repair_order_repository.get_all_datas_from_table()
+
+    def get_repair_order(
+            self,
+            repair_order_id: int
+    ) -> RepairOrderModel | None:
+        repair_order = self.repair_order_repository.get_repair_order_by_id(
+            repair_order_id
+        )
+
+        if repair_order is None:
+            return None
+
+        master = self.repository.get_master_by_id(repair_order.master_id)
+        repair_order.master = master
+
+        return repair_order

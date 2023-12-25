@@ -3,6 +3,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from src.admin.schemas import MasterInfoWithIdSchema
+
 
 class CreateRepairOrderSchema(BaseModel):
     customer_full_name: str
@@ -19,6 +21,13 @@ class RepairOrderSchema(CreateRepairOrderSchema):
     updated_at: datetime
     master_id: int
     status: str
+
+    class Config:
+        from_attributes = True
+
+
+class AllInfoOfRepairOrderSchema(RepairOrderSchema):
+    master: MasterInfoWithIdSchema
 
     class Config:
         from_attributes = True
