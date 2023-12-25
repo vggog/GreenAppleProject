@@ -18,6 +18,7 @@ class RepairOrderSchema(CreateRepairOrderSchema):
     created_at: datetime
     updated_at: datetime
     master_id: int
+    status: str
 
     class Config:
         from_attributes = True
