@@ -45,3 +45,6 @@ class Servise(BaseService):
             **repair_order.model_dump(),
             master_id=master.id,
         )
+
+    def get_all_repair_orders(self) -> list[RepairOrderModel]:
+        return self.repair_order_repository.get_all_datas_from_table()

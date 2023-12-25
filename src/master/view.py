@@ -131,3 +131,24 @@ def create_repair_order(
     )
 
     return created_order
+
+
+@router.get(
+    "/repair_orders/all",
+    response_model=list[RepairOrderSchema],
+)
+def get_all_repair_orders(
+        token: Annotated[str, Depends(oauth2_scheme)],
+        service: Servise = Depends(Servise),
+        authorization=Depends(Authorization),
+):
+    data_from_jwt = authorization.get_data_from_jwt(token)
+
+    if not service.get_master_by_phone(data_from_jwt["sub"]):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+    repair_orders = service.get_all_repair_orders()
+
+    return repair_orders
