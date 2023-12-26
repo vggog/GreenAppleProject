@@ -22,3 +22,12 @@ class RepairOrderRepository(BaseRepository):
             session.refresh(created_object)
 
         return created_object
+
+    def update_status_of_repair_order(
+            self,
+            repair_order_id: int,
+            status: str
+    ) -> RepairOrderModel:
+        self.update_object(object_id=repair_order_id, status=status)
+
+        return self.get_repair_order_by_id(repair_order_id)

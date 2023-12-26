@@ -31,3 +31,7 @@ class AllInfoOfRepairOrderSchema(RepairOrderSchema):
 
     class Config:
         from_attributes = True
+
+
+class UpdatedRepairOrderSchema(BaseModel):
+    status: str

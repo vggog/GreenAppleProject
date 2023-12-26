@@ -5,7 +5,10 @@ from starlette import status
 from src.core.authorization import Authorization
 from src.core.password import Password
 from src.master.model import MasterModel, RepairOrderModel
-from src.master.schemas import CreateRepairOrderSchema
+from src.master.schemas import (
+    CreateRepairOrderSchema, UpdatedRepairOrderSchema
+)
+from src.core.config import load_config
 
 
 class Servise(BaseService):
@@ -13,6 +16,7 @@ class Servise(BaseService):
     repair_order_repository = RepairOrderRepository()
     auth = Authorization()
     password = Password()
+    project_set_up = load_config().project_setup
 
     def get_master_by_phone(self, phone: str) -> MasterModel | None:
         """
@@ -64,3 +68,37 @@ class Servise(BaseService):
         repair_order.master = master
 
         return repair_order
+
+    def update_repair_order_info(
+            self,
+            repair_order_id: int,
+            updated_repair_order: UpdatedRepairOrderSchema
+    ) -> tuple[status, RepairOrderModel | str]:
+        statuses = self.project_set_up.order_statuses
+
+        if updated_repair_order.status not in statuses:
+            statuses_string = ", ".join(statuses)
+            return (
+                status.HTTP_400_BAD_REQUEST,
+                "Статус заказа должен быть: " + statuses_string
+            )
+
+        repair_order = self.get_repair_order(
+            repair_order_id
+        )
+
+        if repair_order is None:
+            return (
+                status.HTTP_404_NOT_FOUND,
+                "Repair order not found"
+            )
+
+        self.repair_order_repository.update_status_of_repair_order(
+            repair_order_id,
+            updated_repair_order.status,
+        )
+
+        return (
+            status.HTTP_200_OK,
+            self.get_repair_order(repair_order_id)
+        )
