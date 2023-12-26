@@ -9,7 +9,8 @@ from src.core.schemas import ResponseAccessToken
 from src.master.service import Servise
 from src.core.authorization import Authorization
 from src.master.schemas import (
-    RepairOrderSchema, CreateRepairOrderSchema, AllInfoOfRepairOrderSchema
+    RepairOrderSchema, CreateRepairOrderSchema, AllInfoOfRepairOrderSchema,
+    UpdatedRepairOrderSchema
 )
 
 
@@ -178,6 +179,37 @@ def get_repair_order_info(
     if repair_order is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+    return repair_order
+
+
+@router.patch(
+    "/repair_orders/{repair_order_id}",
+    response_model=AllInfoOfRepairOrderSchema,
+)
+def update_repair_order(
+        repair_order_id: int,
+        updated_repair_order: UpdatedRepairOrderSchema,
+        token: Annotated[str, Depends(oauth2_scheme)],
+        service: Servise = Depends(Servise),
+        authorization=Depends(Authorization),
+):
+    data_from_jwt = authorization.get_data_from_jwt(token)
+
+    if service.get_master_by_phone(data_from_jwt["sub"]) is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+    status_code, repair_order = service.update_repair_order_info(
+        repair_order_id, updated_repair_order
+    )
+
+    if status_code != status.HTTP_200_OK:
+        raise HTTPException(
+            status_code,
+            detail=repair_order,
         )
 
     return repair_order
