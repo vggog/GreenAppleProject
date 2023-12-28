@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.view import router
 from src.admin.views import router as admin_router
+from src.master.view import router as master_router
 
 from src.core.config import load_config
 
@@ -20,6 +21,7 @@ class AppFactory:
     def _append_routes(app: FastAPI):
         app.include_router(router)
         app.include_router(admin_router)
+        app.include_router(master_router)
 
     @staticmethod
     def _append_origins(app: FastAPI):
