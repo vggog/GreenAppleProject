@@ -12,7 +12,7 @@ class CreateRepairOrderSchema(BaseModel):
     phone_model: str
     imei: str
     defect: str
-    note: Optional[str]
+    note: Optional[str] = None
 
 
 class RepairOrderSchema(CreateRepairOrderSchema):
