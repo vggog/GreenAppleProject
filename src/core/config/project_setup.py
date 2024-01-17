@@ -11,4 +11,7 @@ def load_project_set_up() -> ProjectSetUp:
                 lambda o: o.strip(), os.getenv("ORIGINS").split(",")
             )
         ),
+        static_files_dir="./src/static",
+        receipt_html_template="receipt_template.html",
+        receipt_logo_name="logo.jpg",
     )

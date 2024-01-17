@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import Depends, Response, Cookie
 from starlette import status
+from fastapi.responses import FileResponse, StreamingResponse
 
 from src.core.schemas import ResponseAccessToken
 from src.master.service import Servise
@@ -213,3 +214,39 @@ def update_repair_order(
         )
 
     return repair_order
+
+
+@router.get(
+    "/repair_orders/receipt/{repair_order_id}",
+)
+def get_receipt_of_repair_order(
+        repair_order_id: int,
+        token: Annotated[str, Depends(oauth2_scheme)],
+        service: Servise = Depends(Servise),
+        authorization=Depends(Authorization),
+):
+    data_from_jwt = authorization.get_data_from_jwt(token)
+
+    if service.get_master_by_phone(data_from_jwt["sub"]) is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+    status_code, detail = service.generate_receipt(
+        repair_order_id
+    )
+
+    if status_code != status.HTTP_200_OK:
+        raise HTTPException(
+            status_code,
+            detail=detail,
+        )
+
+    return Response(
+        content=detail,
+        headers={
+            "Content-Disposition": 'inline; filename="out.pdf"',
+            "content-type": "application/octet-stream",
+            "Content-Transfer-Encoding": "binary"
+        }
+    )

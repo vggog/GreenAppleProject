@@ -52,6 +52,9 @@ class ProjectSetUp:
     order_statuses = [
         "Принят на ремонт", "Ремонтируется", "Готов", "Выдан клиенту"
     ]
+    static_files_dir: str
+    receipt_html_template: str
+    receipt_logo_name: str
 
 
 @dataclass

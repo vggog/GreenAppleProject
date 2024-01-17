@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+        @page {
+            size: 21cm 29.7cm;
+            margin: 100mm 100mm 100mm 100mm;
+        }
+        h1 {
+            text-align: center;
+        }
+        h2 {
+            text-align: center;
+        }
+        .basic_info {
+            font-size: 14px;
+        }
+        .note {
+            text-align: justify;
+        }
+        .logo {
+            height: 150px;
+            width: 150px;
+            float: right;
+        }
+        .order_info {
+            font-size: 14px;
+            display: inline-block;
+            width: 75%;
+            height: auto;
+        }
+        .header {
+            font-size: 0px;
+        }
+        .master_signature {
+            width: 50%;
+            position: relative;
+            float: left;
+        }
+        .customer_signature {
+            width: 50%;
+            position: relative;
+            float: right;
+            text-align: right;
+        }
+        .copy {
+            width: 95%;
+            min-height: 50%;
+            height: auto;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 1cm;
+        }
+        .cut_line {
+            margin-top: 1cm;
+            width: 100%
+        }
+    </style>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+  </head>
+  <body>
+  <div class="copy">
+      <h1>Квитанция</h1>
+    <h2>На приём в ремонт оборудования</h2>
+        <div class="basic_info">
+            <div class="header">
+                <div class="order_info">
+                    <p><b>Дата приёма</b> {{ date }}</p>
+                    <p><b>Ф.И.О.</b> {{ full_name }}</p>
+                    <p><b>Телефон</b> {{ phone_model }}</p>
+                    <p><b>IMEI</b> {{ imei }}</p>
+                    <p style="word-break: break-all;"><b>Заявленная неисправность</b> {{ defect }}</p>
+                    <p style="word-break: break-all;"><b>Примечание</b> {{ note }}</p>
+                </div>
+                <div class="logo">
+                    <img class="logo" src="data:;base64,{{ image_string }}" alt="Logo">
+                </div>
+            </div>
+
+            <div class="note">
+                <p>
+                    Оборудование с согласия клиента принято без разборки и проверки неисправностей, без
+                    проверки внутренних повреждений. Клиент согласен, что все неисправности внутренние
+                    повреждения, которые могут быть обнаружены в оборудовании при техническом
+                    обслуживании и возникли до приёма оборудования по данной расписке. При выполнении ремонта
+                    все настройки могут быть возвращены к заводским установкам, записная
+                    телефонная книжка стерта. Сервис центр не несёт ответственности за оставленные в
+                    аппарате SIM и FLASH карты. Сроки хранения техники 2 месяца, после чего техника
+                    утилизируется.
+                </p>
+            </div>
+
+            <div class="master_signature">
+                <p><b>Оборудование в ремонт принял</b></p>
+                <p>____________________________</p>
+            </div>
+            <div class="customer_signature">
+                <p><b>Оборудование в ремонт сдал</b></p>
+                <p>__________________________</p>
+            </div>
+        </div>
+  </div>
+  <hr class="cut_line">
+    <div class="copy">
+      <h1>Квитанция</h1>
+    <h2>На приём в ремонт оборудования</h2>
+        <div class="basic_info">
+            <div class="header">
+                <div class="order_info">
+                    <p><b>Дата приёма</b> {{ date }}</p>
+                    <p><b>Ф.И.О.</b> {{ full_name }}</p>
+                    <p><b>Телефон</b> {{ phone_model }}</p>
+                    <p><b>IMEI</b> {{ imei }}</p>
+                    <p style="word-break: break-all;"><b>Заявленная неисправность</b> {{ defect }}</p>
+                    <p style="word-break: break-all;"><b>Примечание</b> {{ note }}</p>
+                </div>
+                <div class="logo">
+                    <img class="logo" src="data:;base64,{{ image_string }}" alt="Logo">
+                </div>
+            </div>
+
+            <div class="note">
+                <p>
+                    Оборудование с согласия клиента принято без разборки и проверки неисправностей, без
+                    проверки внутренних повреждений. Клиент согласен, что все неисправности внутренние
+                    повреждения, которые могут быть обнаружены в оборудовании при техническом
+                    обслуживании и возникли до приёма оборудования по данной расписке. При выполнении ремонта
+                    все настройки могут быть возвращены к заводским установкам, записная
+                    телефонная книжка стерта. Сервис центр не несёт ответственности за оставленные в
+                    аппарате SIM и FLASH карты. Сроки хранения техники 2 месяца, после чего техника
+                    утилизируется.
+                </p>
+            </div>
+
+            <div class="master_signature">
+                <p><b>Оборудование в ремонт принял</b></p>
+                <p>____________________________</p>
+            </div>
+            <div class="customer_signature">
+                <p><b>Оборудование в ремонт сдал</b></p>
+                <p>__________________________</p>
+            </div>
+        </div>
+  </div>
+  </body>
+</html>

@@ -9,6 +9,7 @@ from src.master.schemas import (
     CreateRepairOrderSchema, UpdatedRepairOrderSchema
 )
 from src.core.config import load_config
+from src.master.receipt_generator import ReceiptGenerator
 
 
 class Servise(BaseService):
@@ -17,6 +18,7 @@ class Servise(BaseService):
     auth = Authorization()
     password = Password()
     project_set_up = load_config().project_setup
+    receipt_generator = ReceiptGenerator()
 
     def get_master_by_phone(self, phone: str) -> MasterModel | None:
         """
@@ -101,4 +103,22 @@ class Servise(BaseService):
         return (
             status.HTTP_200_OK,
             self.get_repair_order(repair_order_id)
+        )
+
+    def generate_receipt(self, repair_order_id):
+        """
+        :param repair_order_id:
+        :return:
+        """
+        repair_order = self.get_repair_order(repair_order_id)
+
+        if repair_order is None:
+            return (
+                status.HTTP_404_NOT_FOUND,
+                "Repair order not found"
+            )
+
+        return (
+            status.HTTP_200_OK,
+            self.receipt_generator.get_receipt(repair_order)
         )
