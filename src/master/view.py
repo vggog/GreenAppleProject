@@ -11,7 +11,7 @@ from src.master.service import Servise
 from src.core.authorization import Authorization
 from src.master.schemas import (
     RepairOrderSchema, CreateRepairOrderSchema, AllInfoOfRepairOrderSchema,
-    UpdatedRepairOrderSchema
+    UpdatedRepairOrderSchema, QuickInfoRepairOrderSchema
 )
 
 
@@ -139,7 +139,7 @@ def create_repair_order(
 
 @router.get(
     "/repair_orders/all",
-    response_model=list[RepairOrderSchema],
+    response_model=list[QuickInfoRepairOrderSchema],
 )
 def get_all_repair_orders(
         token: Annotated[str, Depends(oauth2_scheme)],

@@ -26,6 +26,16 @@ class RepairOrderSchema(CreateRepairOrderSchema):
         from_attributes = True
 
 
+class QuickInfoRepairOrderSchema(BaseModel):
+    id: int
+    phone_model: str
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class AllInfoOfRepairOrderSchema(RepairOrderSchema):
     master: MasterInfoWithIdSchema
 
