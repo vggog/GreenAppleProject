@@ -15,9 +15,6 @@ class MasterModel(BaseModel):
     phone: Mapped[str]
     password: Mapped[str]
     salt: Mapped[str]
-    repair_orders: Mapped[list["RepairOrderModel"]] = relationship(
-        back_populates="master"
-    )
 
 
 class RepairOrderModel(BaseModel):
@@ -33,8 +30,22 @@ class RepairOrderModel(BaseModel):
         # модуля src.core.config.models
         default="Принят на ремонт"
     )
-    master_id: Mapped[int] = mapped_column(ForeignKey("masters.id"))
-    master: Mapped["MasterModel"] = relationship(
-        back_populates="repair_orders"
-    )
+    status_changes: Mapped[list["StatusChangedModel"]] = relationship()
+
     note: Mapped[Optional[str]]
+
+
+class StatusChangedModel(BaseModel):
+    __tablename__ = "status_changed_table"
+
+    status: Mapped[str]
+
+    master_id: Mapped[int] = mapped_column(ForeignKey("masters.id"))
+    master: Mapped["MasterModel"] = relationship()
+
+    repair_order_id: Mapped[int] = mapped_column(
+        ForeignKey("repair_orders.id")
+    )
+    repair_order: Mapped["RepairOrderModel"] = relationship(
+        back_populates="status_changes"
+    )
