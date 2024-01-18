@@ -10,11 +10,13 @@ from src.master.schemas import (
 )
 from src.core.config import load_config
 from src.master.receipt_generator import ReceiptGenerator
+from src.master.status_changed_repository import StatusChangedRepository
 
 
 class Servise(BaseService):
     repository = Repository()
     repair_order_repository = RepairOrderRepository()
+    status_changed_repository = StatusChangedRepository()
     auth = Authorization()
     password = Password()
     project_set_up = load_config().project_setup
@@ -40,17 +42,19 @@ class Servise(BaseService):
     def create_repair_order(
             self,
             repair_order: CreateRepairOrderSchema,
-            phone_number: str
+            master: MasterModel,
     ) -> RepairOrderModel:
-        master = self.get_master_by_phone(phone_number)
-
-        if not master:
-            ...
-
-        return self.repair_order_repository.create_repair_order(
+        created_repair_order = self.repair_order_repository.create_repair_order(
             **repair_order.model_dump(),
-            master_id=master.id,
         )
+
+        self.status_changed_repository.add_status_change_row(
+            status=created_repair_order.status,
+            repair_order_id=created_repair_order.id,
+            master_id=master.id
+        )
+
+        return created_repair_order
 
     def get_all_repair_orders(self) -> list[RepairOrderModel]:
         return self.repair_order_repository.get_all_datas_from_table()
@@ -66,15 +70,13 @@ class Servise(BaseService):
         if repair_order is None:
             return None
 
-        master = self.repository.get_master_by_id(repair_order.master_id)
-        repair_order.master = master
-
         return repair_order
 
     def update_repair_order_info(
             self,
             repair_order_id: int,
-            updated_repair_order: UpdatedRepairOrderSchema
+            updated_repair_order: UpdatedRepairOrderSchema,
+            master: MasterModel,
     ) -> tuple[status, RepairOrderModel | str]:
         statuses = self.project_set_up.order_statuses
 
@@ -98,6 +100,12 @@ class Servise(BaseService):
         self.repair_order_repository.update_status_of_repair_order(
             repair_order_id,
             updated_repair_order.status,
+        )
+
+        self.status_changed_repository.add_status_change_row(
+            status=updated_repair_order.status,
+            repair_order_id=repair_order_id,
+            master_id=master.id
         )
 
         return (

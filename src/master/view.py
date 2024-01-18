@@ -10,8 +10,8 @@ from src.core.schemas import ResponseAccessToken
 from src.master.service import Servise
 from src.core.authorization import Authorization
 from src.master.schemas import (
-    RepairOrderSchema, CreateRepairOrderSchema, AllInfoOfRepairOrderSchema,
-    UpdatedRepairOrderSchema, QuickInfoRepairOrderSchema
+    RepairOrderSchema, CreateRepairOrderSchema, UpdatedRepairOrderSchema,
+    QuickInfoRepairOrderSchema
 )
 
 from src.master.model import MasterModel
@@ -146,7 +146,7 @@ def get_all_repair_orders(
 
 @router.get(
     "/repair_orders/{repair_order_id}",
-    response_model=AllInfoOfRepairOrderSchema,
+    response_model=RepairOrderSchema,
 )
 def get_repair_order_info(
         repair_order_id: int,
@@ -165,7 +165,7 @@ def get_repair_order_info(
 
 @router.patch(
     "/repair_orders/{repair_order_id}",
-    response_model=AllInfoOfRepairOrderSchema,
+    response_model=RepairOrderSchema,
 )
 def update_repair_order(
         repair_order_id: int,
@@ -174,7 +174,7 @@ def update_repair_order(
         service: Servise = Depends(Servise),
 ):
     status_code, repair_order = service.update_repair_order_info(
-        repair_order_id, updated_repair_order
+        repair_order_id, updated_repair_order, master
     )
 
     if status_code != status.HTTP_200_OK:
