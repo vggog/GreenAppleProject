@@ -1,7 +1,7 @@
 from typing import Optional, Annotated
 
 from fastapi import APIRouter, HTTPException
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import Depends, Response, Cookie
 from starlette import status
 from fastapi.responses import FileResponse, StreamingResponse
@@ -14,11 +14,13 @@ from src.master.schemas import (
     UpdatedRepairOrderSchema, QuickInfoRepairOrderSchema
 )
 
+from src.master.model import MasterModel
+from src.master.master_auth import get_master
+
 
 router = APIRouter(
     prefix='/master',
 )
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='master/auth')
 
 
 @router.post(
@@ -118,20 +120,12 @@ def admin_logout(
 )
 def create_repair_order(
         repair_order: CreateRepairOrderSchema,
-        token: Annotated[str, Depends(oauth2_scheme)],
+        master: Annotated[MasterModel, Depends(get_master)],
         service: Servise = Depends(Servise),
-        authorization=Depends(Authorization),
 ):
-    data_from_jwt = authorization.get_data_from_jwt(token)
-
-    if not service.get_master_by_phone(data_from_jwt["sub"]):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-        )
-
     created_order = service.create_repair_order(
         repair_order,
-        phone_number=data_from_jwt["sub"]
+        master=master
     )
 
     return created_order
@@ -142,17 +136,9 @@ def create_repair_order(
     response_model=list[QuickInfoRepairOrderSchema],
 )
 def get_all_repair_orders(
-        token: Annotated[str, Depends(oauth2_scheme)],
+        master: Annotated[MasterModel, Depends(get_master)],
         service: Servise = Depends(Servise),
-        authorization=Depends(Authorization),
 ):
-    data_from_jwt = authorization.get_data_from_jwt(token)
-
-    if not service.get_master_by_phone(data_from_jwt["sub"]):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-        )
-
     repair_orders = service.get_all_repair_orders()
 
     return repair_orders
@@ -164,17 +150,9 @@ def get_all_repair_orders(
 )
 def get_repair_order_info(
         repair_order_id: int,
-        token: Annotated[str, Depends(oauth2_scheme)],
+        master: Annotated[MasterModel, Depends(get_master)],
         service: Servise = Depends(Servise),
-        authorization=Depends(Authorization),
 ):
-    data_from_jwt = authorization.get_data_from_jwt(token)
-
-    if service.get_master_by_phone(data_from_jwt["sub"]) is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-        )
-
     repair_order = service.get_repair_order(repair_order_id)
 
     if repair_order is None:
@@ -192,17 +170,9 @@ def get_repair_order_info(
 def update_repair_order(
         repair_order_id: int,
         updated_repair_order: UpdatedRepairOrderSchema,
-        token: Annotated[str, Depends(oauth2_scheme)],
+        master: Annotated[MasterModel, Depends(get_master)],
         service: Servise = Depends(Servise),
-        authorization=Depends(Authorization),
 ):
-    data_from_jwt = authorization.get_data_from_jwt(token)
-
-    if service.get_master_by_phone(data_from_jwt["sub"]) is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-        )
-
     status_code, repair_order = service.update_repair_order_info(
         repair_order_id, updated_repair_order
     )
@@ -221,17 +191,9 @@ def update_repair_order(
 )
 def get_receipt_of_repair_order(
         repair_order_id: int,
-        token: Annotated[str, Depends(oauth2_scheme)],
+        master: Annotated[MasterModel, Depends(get_master)],
         service: Servise = Depends(Servise),
-        authorization=Depends(Authorization),
 ):
-    data_from_jwt = authorization.get_data_from_jwt(token)
-
-    if service.get_master_by_phone(data_from_jwt["sub"]) is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-        )
-
     status_code, detail = service.generate_receipt(
         repair_order_id
     )
