@@ -14,6 +14,8 @@ from src.admin.schemas import (
     MasterInfoWithPassword, MasterInfoWithIdSchema, MasterUpdateSchema,
     MasterInfoSchema
 )
+from src.master.service import Servise as MasterService
+from src.master.schemas import QuickInfoRepairOrderSchema
 
 
 router = APIRouter(
@@ -272,3 +274,25 @@ def delete_master_info(
         )
 
     return response
+
+
+@router.get(
+    "/repair_orders/all",
+    response_model=list[QuickInfoRepairOrderSchema],
+)
+def get_all_repair_orders(
+        token: Annotated[str, Depends(oauth2_scheme)],
+        authorization=Depends(Authorization),
+        service=Depends(Service),
+        master_service: MasterService = Depends(MasterService)
+):
+    username = authorization.get_data_from_jwt(token)["sub"]
+
+    if not service.is_admin(username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You do not have permission.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return master_service.get_all_repair_orders()
