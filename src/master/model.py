@@ -30,7 +30,9 @@ class RepairOrderModel(BaseModel):
         # модуля src.core.config.models
         default="Принят на ремонт"
     )
-    status_changes: Mapped[list["StatusChangedModel"]] = relationship()
+    status_changes: Mapped[list["StatusChangedModel"]] = relationship(
+        lazy="selectin"
+    )
 
     note: Mapped[Optional[str]]
 
@@ -41,7 +43,7 @@ class StatusChangedModel(BaseModel):
     status: Mapped[str]
 
     master_id: Mapped[int] = mapped_column(ForeignKey("masters.id"))
-    master: Mapped["MasterModel"] = relationship()
+    master: Mapped["MasterModel"] = relationship(lazy="selectin")
 
     repair_order_id: Mapped[int] = mapped_column(
         ForeignKey("repair_orders.id")

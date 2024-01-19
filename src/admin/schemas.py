@@ -1,4 +1,5 @@
 from typing import Optional
+from datetime import datetime
 
 from pydantic import BaseModel
 
@@ -28,3 +29,35 @@ class MasterUpdateSchema(BaseModel):
     surname: Optional[str] = None
     phone: Optional[str] = None
     password: Optional[str] = None
+
+
+class MasterChangedStatusSchema(BaseModel):
+    id: int
+    name: str
+    surname: str
+
+
+class StatusChangeRowSchema(BaseModel):
+    status: str
+    created_at: datetime
+    master: MasterChangedStatusSchema
+
+    class Config:
+        from_attributes = True
+
+
+class RepairOrderSchema(BaseModel):
+    id: int
+    imei: str
+    defect: str
+    status: str
+    phone_model: str
+    created_at: datetime
+    updated_at: datetime
+    customer_full_name: str
+    customer_phone_number: str
+    note: Optional[str] = None
+    status_changes: list[StatusChangeRowSchema]
+
+    class Config:
+        from_attributes = True

@@ -12,7 +12,7 @@ from src.admin.service import Service
 from src.core.authorization import Authorization
 from src.admin.schemas import (
     MasterInfoWithPassword, MasterInfoWithIdSchema, MasterUpdateSchema,
-    MasterInfoSchema
+    MasterInfoSchema, RepairOrderSchema
 )
 from src.master.service import Servise as MasterService
 from src.master.schemas import QuickInfoRepairOrderSchema
@@ -296,3 +296,26 @@ def get_all_repair_orders(
         )
 
     return master_service.get_all_repair_orders()
+
+
+@router.get(
+    "repair_orders/{repair_order_id}",
+    response_model=RepairOrderSchema,
+)
+def get_repair_order(
+        repair_order_id: int,
+        token: Annotated[str, Depends(oauth2_scheme)],
+        authorization=Depends(Authorization),
+        service=Depends(Service),
+        master_service: MasterService = Depends(MasterService)
+):
+    username = authorization.get_data_from_jwt(token)["sub"]
+
+    if not service.is_admin(username):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You do not have permission.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return master_service.get_repair_order(repair_order_id)
