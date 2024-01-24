@@ -26,6 +26,7 @@ class ReceiptGenerator:
         date_str = f"{date.day}.{date.month}.{date.year}"
         
         context = {
+            "id": repair_order.id,
             "date": date_str,
             "full_name": repair_order.customer_full_name,
             "phone_model": repair_order.phone_model,

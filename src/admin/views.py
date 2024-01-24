@@ -299,7 +299,7 @@ def get_all_repair_orders(
 
 
 @router.get(
-    "repair_orders/{repair_order_id}",
+    "/repair_orders/{repair_order_id}",
     response_model=RepairOrderSchema,
 )
 def get_repair_order(
