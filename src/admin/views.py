@@ -16,12 +16,12 @@ from src.admin.schemas import (
 )
 from src.master.service import Servise as MasterService
 from src.master.schemas import QuickInfoRepairOrderSchema
+from src.admin.admin_auth import is_admin
 
 
 router = APIRouter(
     prefix="/admin",
 )
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="admin/auth")
 
 
 @router.post(
@@ -123,22 +123,12 @@ def admin_logout(
 @router.post(
     "/master",
     response_model=MasterInfoWithPassword,
+    dependencies=[Depends(is_admin), ],
 )
 def add_new_master(
         master: MasterInfoWithPassword,
-        token: Annotated[str, Depends(oauth2_scheme)],
         service=Depends(Service),
-        authorization=Depends(Authorization),
 ):
-    username = authorization.get_data_from_jwt(token)["sub"]
-
-    if not service.is_admin(username):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You do not have permission.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
     success, detail = service.add_master(master)
 
     if not success:
@@ -154,48 +144,29 @@ def add_new_master(
 @router.get(
     "/master/all",
     response_model=list[MasterInfoWithIdSchema],
+    dependencies=[Depends(is_admin), ],
 )
 def get_all_masters(
-        token: Annotated[str, Depends(oauth2_scheme)],
         service=Depends(Service),
-        authorization=Depends(Authorization),
 ):
     """
     Выдаёт всех мастеров, которые есть в базе данных.
     """
-    username = authorization.get_data_from_jwt(token)["sub"]
-
-    if not service.is_admin(username):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You do not have permission.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
     return service.get_all_masters()
 
 
 @router.get(
     "/master/{master_id}",
     response_model=MasterInfoWithIdSchema,
+    dependencies=[Depends(is_admin), ],
 )
 def get_master_info(
         master_id: int,
-        token: Annotated[str, Depends(oauth2_scheme)],
         service=Depends(Service),
-        authorization=Depends(Authorization),
 ):
     """
     Выдаёт информацию о конкретном мастере.
     """
-    username = authorization.get_data_from_jwt(token)["sub"]
-
-    if not service.is_admin(username):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You do not have permission.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
 
     master = service.get_master(master_id)
     if not master:
@@ -211,27 +182,18 @@ def get_master_info(
 @router.put(
     "/master/{master_id}",
     response_model=MasterInfoSchema,
+    dependencies=[Depends(is_admin), ],
 )
 def update_master_info(
         master_id: int,
         master_info: MasterUpdateSchema,
-        token: Annotated[str, Depends(oauth2_scheme)],
         service=Depends(Service),
-        authorization=Depends(Authorization),
 ):
     """
     Обновление данных у мастера.
     """
-    username = authorization.get_data_from_jwt(token)["sub"]
-
-    if not service.is_admin(username):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You do not have permission.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
     status_code, response = service.update_master(master_id, master_info)
+
     if status_code != status.HTTP_200_OK:
         raise HTTPException(
             status_code=status_code,
@@ -245,25 +207,15 @@ def update_master_info(
 @router.delete(
     "/master/{master_id}",
     response_model=MasterInfoSchema,
+    dependencies=[Depends(is_admin), ],
 )
 def delete_master_info(
         master_id: int,
-        token: Annotated[str, Depends(oauth2_scheme)],
         service=Depends(Service),
-        authorization=Depends(Authorization),
 ):
     """
     Удаление мастера.
     """
-    username = authorization.get_data_from_jwt(token)["sub"]
-
-    if not service.is_admin(username):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You do not have permission.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
     status_code, response = service.delete_master(master_id)
 
     if status_code != status.HTTP_200_OK:
@@ -279,43 +231,21 @@ def delete_master_info(
 @router.get(
     "/repair_orders/all",
     response_model=list[QuickInfoRepairOrderSchema],
+    dependencies=[Depends(is_admin), ],
 )
 def get_all_repair_orders(
-        token: Annotated[str, Depends(oauth2_scheme)],
-        authorization=Depends(Authorization),
-        service=Depends(Service),
         master_service: MasterService = Depends(MasterService)
 ):
-    username = authorization.get_data_from_jwt(token)["sub"]
-
-    if not service.is_admin(username):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You do not have permission.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
     return master_service.get_all_repair_orders()
 
 
 @router.get(
     "/repair_orders/{repair_order_id}",
     response_model=RepairOrderSchema,
+    dependencies=[Depends(is_admin), ],
 )
 def get_repair_order(
         repair_order_id: int,
-        token: Annotated[str, Depends(oauth2_scheme)],
-        authorization=Depends(Authorization),
-        service=Depends(Service),
         master_service: MasterService = Depends(MasterService)
 ):
-    username = authorization.get_data_from_jwt(token)["sub"]
-
-    if not service.is_admin(username):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You do not have permission.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
     return master_service.get_repair_order(repair_order_id)
