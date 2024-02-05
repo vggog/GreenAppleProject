@@ -15,7 +15,7 @@ services:
 
   back:
     build: .
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: bash start_app.sh
     volumes:
       - ./:/code/
     ports:
