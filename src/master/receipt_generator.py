@@ -34,6 +34,7 @@ class ReceiptGenerator:
             "defect": repair_order.defect,
             "note": repair_order.note if repair_order.note else "",
             "image_string": self.get_image_file(),
+            "phone_number": repair_order.customer_phone_number,
         }
 
         template = self.template_env.get_template(

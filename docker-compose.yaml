@@ -12,6 +12,11 @@ services:
     networks:
       - greenapple-network
     container_name: greenapple-db
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
 
   back:
     build: .
@@ -23,7 +28,8 @@ services:
     networks:
       - greenapple-network
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     container_name: greenapple-back
     restart: always
 
