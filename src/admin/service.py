@@ -40,22 +40,10 @@ class Service(BaseService):
         """
         return username == self.admin_conf.username
 
-    @staticmethod
-    def validate_phone(phone: str) -> bool:
-        return bool(
-            re.match(
-                r"^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$",
-                phone
-            )
-        )
-
     def validate_password(self, password: str) -> bool:
-        return len(password) > self.project_setup.password_length
+        return len(password) >= self.project_setup.password_length
 
     def add_master(self, master: MasterInfoWithPassword) -> tuple[bool, str]:
-        if not Service.validate_phone(master.phone):
-            return False, "The entered phone number is incorrect."
-
         if not self.validate_password(master.password):
             return False, "Small password length."
 
